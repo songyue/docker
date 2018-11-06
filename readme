@@ -1,0 +1,60 @@
+docker
+常用命令(docker help)
+docker ps 
+docker ps -a
+docker images
+docker run
+docker run -d 后台运行
+docker exec -it 容器名 /bin/bash 
+docker attach 容器id或者容器name
+
+gitlab 官网docker教程
+@see https://docs.gitlab.com/omnibus/docker/ 
+
+本地安装操作记录
+直接运行方式:
+sudo docker run --detach \
+	--hostname gitlab.example.com \
+	--publish 443:443 --publish 80:80 --publish 22:22 \
+	--name gitlab \
+	--restart always \
+	--volume /srv/gitlab/config:/etc/gitlab \
+	--volume /srv/gitlab/logs:/var/log/gitlab \
+	--volume /srv/gitlab/data:/var/opt/gitlab \
+	gitlab/gitlab-ce:latest
+
+
+使用docker-compose安装GitLab
+wget https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/docker/docker-compose.yml
+或者手动创建  vim gitlab/docker-compose.yml 
+ web:
+   image: 'gitlab/gitlab-ce:latest'
+   restart: always
+   hostname: 'gitlab.example.com'
+   environment:
+     GITLAB_OMNIBUS_CONFIG: |
+       external_url 'https://gitlab.example.com'
+       # Add any other gitlab.rb configuration here, each on its own line
+   ports:
+     - '80:80'
+     - '443:443'
+     - '22:22'
+   volumes:
+     - '/srv/gitlab/config:/etc/gitlab'
+     - '/srv/gitlab/logs:/var/log/gitlab'
+     - '/srv/gitlab/data:/var/opt/gitlab'
+
+
+不熟悉docker的注意端口号配置,上面的 80:80 为容器暴露端口和映射内部端口,我最开始因为使用了自定义的端口号,
+但是gitlab内部没有配置,导致访问是一直重定向,这时候只需要修改 gitlab.rb 配置文件
+# For HTTP
+ external_url "http://gitlab.example.com:8929"
+
+ or
+
+ # For HTTPS (notice the https)
+ external_url "https://gitlab.example.com:8929"
+
+这里的 8929 是gitlab在容器内监听的端口,如果想使用80访问容器,则配置 80:8929 映射,443同理,另外就是创建过容器后,
+gitlab已经执行过安装操作,如果你要重新创建容器,需要清空你volumes映射的目录,我就因为首次安装时候后,端口映射错误.
+导致无法访问,然后重装就一直起不来,后来attach到容器执行才发现错误提示,数据库已经创建,顺利的话几分中就搞定了
