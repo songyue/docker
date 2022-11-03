@@ -1,0 +1,18 @@
+配置docker pull代理
+
+Dockerd 代理
+在执行docker pull时，是由守护进程dockerd来执行。因此，代理需要配在dockerd的环境中。而这个环境，则是受systemd所管控，因此实际是systemd的配置。
+
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo vim /etc/systemd/system/docker.service.d/proxy.conf
+
+    [Service]
+    Environment="HTTP_PROXY=http://127.0.0.1:1087/"
+    Environment="HTTPS_PROXY=http://127.0.0.1:1087/"
+    Environment="NO_PROXY=localhost,127.0.0.1,.example.com"
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+
+原文出处 https://blog.csdn.net/SHELLCODE_8BIT/article/details/124926078

@@ -1,0 +1,10 @@
+普通用户执行 docker ps 会提示无权访问,原因是用户不属于docker组
+
+添加用户到组
+groupadd -G -a docker songyue
+
+刷新组
+newgrp docker
+
+测试权限
+docker ps
